@@ -118,19 +118,22 @@
     ['VYAn6CllAWI', 36, 51],
     ['c6K5AjTGBLc', 21, 36],
   ];
-  // Dos reproductores encimados: uno se ve, el otro precarga el siguiente clip pausado en su primer cuadro.
-  // Un poco antes de que termine el clip visible, arranca el oculto y se cruzan con un fundido.
-  const FADE_AT = 0.8;  // segundos antes del final en que empieza el cruce
+  // Dos reproductores encimados: uno se ve y el otro prepara el siguiente clip.
+  // El oculto arranca LEAD segundos antes del inicio del clip (así el título que YouTube pone al empezar
+  // ya pasó cuando se muestra) y FADE_AT segundos antes del final del visible se cruzan con un fundido.
+  const LEAD = 6, FADE_AT = 0.8;
   const box = document.querySelector('.clip');
   const slots = [];
-  let c = 0, act = 0, ready = 0;
+  let c = 0, act = 0, ready = 0, warm = false;
 
-  const clip = n => { const [videoId, startSeconds, endSeconds] = CLIPS[n % CLIPS.length]; return { videoId, startSeconds, endSeconds }; };
+  const at = n => CLIPS[n % CLIPS.length];
+  const from = n => Math.max(0, at(n)[1] - LEAD);
+  const clip = n => ({ videoId: at(n)[0], startSeconds: from(n), endSeconds: at(n)[2] });
 
   function onYouTubeIframeAPIReady() {
     for (const k of [0, 1]) {
       const el = box.appendChild(document.createElement('div'));
-      slots[k] = { priming: true, p: new YT.Player(el, {
+      slots[k] = { priming: true, shown: false, p: new YT.Player(el, {
         host: 'https://www.youtube-nocookie.com',
         playerVars: { mute: 1, controls: 0, playsinline: 1, rel: 0, disablekb: 1, iv_load_policy: 3, cc_load_policy: 0 },
         events: {
@@ -153,24 +156,35 @@
     slots[k].p.loadVideoById(clip(n));
   }
 
+  function show(k) {
+    slots[k].shown = true;  slots[k].p.getIframe().classList.add('on');
+    slots[k ^ 1].shown = false; slots[k ^ 1].p.getIframe().classList.remove('on');
+  }
+
   function onState(k, st) {
     const { p, priming } = slots[k];
     if (st !== YT.PlayerState.PLAYING) return;
     // cc_load_policy: 0 no basta si el usuario tiene subtítulos activados en su cuenta: se descarga el módulo
     p.unloadModule('captions'); p.unloadModule('cc');
-    if (priming) { p.pauseVideo(); p.seekTo(CLIPS[(c + 1) % CLIPS.length][1], true); return; }
-    p.getIframe().classList.add('on');
-    slots[k ^ 1].p.getIframe().classList.remove('on');
+    if (priming) { p.pauseVideo(); p.seekTo(from(c + 1), true); }  // queda cargado y en pausa
   }
 
   function tick() {
-    const cur = slots[act].p, end = CLIPS[c % CLIPS.length][2];
-    if (cur.getPlayerState?.() !== YT.PlayerState.PLAYING || cur.getCurrentTime() < end - FADE_AT) return;
-    const prev = act;
-    act ^= 1; c++;
-    slots[act].priming = false;
-    slots[act].p.playVideo();
-    setTimeout(() => prime(prev, c + 1), 1500);  // después del fundido, el que salió precarga el siguiente
+    const s = slots[act], [, begin, end] = at(c);
+    if (s.p.getPlayerState?.() !== YT.PlayerState.PLAYING) return;
+    const t = s.p.getCurrentTime();
+    if (!s.shown && t >= begin) show(act);  // solo aplica al primer clip
+    if (!warm && t >= end - FADE_AT - LEAD) {  // arranca el siguiente, todavía oculto
+      warm = true;
+      slots[act ^ 1].priming = false;
+      slots[act ^ 1].p.playVideo();
+    }
+    if (t >= end - FADE_AT) {
+      const prev = act;
+      act ^= 1; c++; warm = false;
+      show(act);
+      setTimeout(() => prime(prev, c + 1), 1500);  // después del fundido, el que salió prepara el siguiente
+    }
   }
 </script>
 <script src="https://www.youtube.com/iframe_api" async></script>
