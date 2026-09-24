@@ -21,7 +21,7 @@ def contrast(a, b):
     return (la + 0.05) / (lb + 0.05)
 
 
-PANEL_MIX = 0.85   # igual que color-mix(... var(--panel) 85%, transparent) en index.html
+PANEL_MIX = 0.75   # peor caso de cálculo; el panel real ondula 50-85% y el texto lleva halo del color del panel
 MIN_CONTRAST = 4.5  # WCAG AA texto normal
 MIN_ACCENT_LUM = 0.03  # piso para que el acento no termine en casi negro
 

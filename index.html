@@ -16,7 +16,11 @@
   @font-face { font-family: Medaunbrauni; src: url(fonts/medaunbrauni.otf); font-display: swap; }
   @font-face { font-family: Medaunbrauni; src: url(fonts/medaunbrauni-bold.otf); font-weight: bold; font-display: swap; }
 
-  :root { --panel: #dca82e; --accent: #312a10; --fade: 2.5s; }
+  /* Registradas como <color> para que el cambio de paleta se interpole también dentro de los degradados */
+  @property --panel { syntax: '<color>'; inherits: true; initial-value: #e1aa23; }
+  @property --accent { syntax: '<color>'; inherits: true; initial-value: #403005; }
+  :root { --panel: #e1aa23; --accent: #403005; --fade: 2.5s;
+          transition: --panel var(--fade) ease-in-out, --accent var(--fade) ease-in-out; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
   body { background: #1a1410; font-family: Medaunbrauni, system-ui, sans-serif; color: var(--accent);
@@ -36,13 +40,25 @@
 
   main { position: relative; width: min(420px, 100%); max-height: calc(100vh - 32px - 12px - 3em); overflow-y: auto;
          padding: clamp(24px, 5vh, 40px) 28px; border-radius: 22px; text-align: center;
-         background: color-mix(in srgb, var(--panel) 85%, transparent);
+         /* Opacidad en ola entre 50% y 85% que se desplaza lentamente */
+         background: linear-gradient(120deg,
+           color-mix(in srgb, var(--panel) 50%, transparent),
+           color-mix(in srgb, var(--panel) 85%, transparent) 20%,
+           color-mix(in srgb, var(--panel) 58%, transparent) 42%,
+           color-mix(in srgb, var(--panel) 82%, transparent) 64%,
+           color-mix(in srgb, var(--panel) 52%, transparent) 84%,
+           color-mix(in srgb, var(--panel) 85%, transparent)) 0 0 / 300% 300%;
+         animation: wave 24s ease-in-out infinite alternate;
          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
          box-shadow: 0 10px 40px rgb(0 0 0 / .35);
-         transition: background-color var(--fade), color var(--fade); }
+         /* Halo del color del panel detrás del texto: el contraste no depende de la ola */
+         text-shadow: 0 0 1px var(--panel), 0 0 3px var(--panel), 0 0 5px var(--panel), 0 0 8px var(--panel),
+                      0 0 12px var(--panel), 0 0 18px var(--panel); }
+  @keyframes wave { to { background-position: 100% 100%; } }
+  main h1, .ico { filter: drop-shadow(0 0 1px var(--panel)) drop-shadow(0 0 4px var(--panel)) drop-shadow(0 0 10px var(--panel)); }
 
   .logo { display: block; width: 88%; aspect-ratio: 1000 / 288; margin: 0 auto clamp(20px, 5vh, 40px);
-          background: var(--accent); transition: background-color var(--fade);
+          background: var(--accent);
           -webkit-mask: url(logo.png) center / contain no-repeat; mask: url(logo.png) center / contain no-repeat; }
 
   a { display: block; color: inherit; text-decoration: none; text-transform: uppercase; letter-spacing: .06em;
@@ -78,7 +94,7 @@
            font: 11px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
            text-shadow: 0 1px 2px rgb(0 0 0 / .9), 0 0 8px rgb(0 0 0 / .6); }
 
-  @media (prefers-reduced-motion: reduce) { .bg div { animation: none; transform: scale(1.05); } .big, .ep { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .bg div { animation: none; transform: scale(1.05); } .big, .ep, main { animation: none; } }
 </style>
 </head>
 <body>
