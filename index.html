@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Me da un brauni</title>
+<meta name="description" content="Brownies caseros. Pide el tuyo.">
+<meta property="og:title" content="Me da un brauni">
+<meta property="og:description" content="Brownies caseros. Pide el tuyo.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍫</text></svg>">
+<style>
+  :root { --bg:#f6efe7; --card:#fff; --text:#3b2418; --accent:#6b3e26; --accent-text:#fff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1e140f; --card:#2b1d16; --text:#f3e6da; --accent:#c98a5a; --accent-text:#1e140f; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text);
+         font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+         display:flex; justify-content:center; padding:48px 16px; }
+  main { width:100%; max-width:480px; text-align:center; }
+  .avatar { width:96px; height:96px; border-radius:50%; background:var(--accent);
+            display:grid; place-items:center; font-size:48px; margin:0 auto 16px; }
+  h1 { margin:0 0 4px; font-size:1.5rem; }
+  p { margin:0 0 32px; opacity:.8; }
+  a.link { display:block; padding:16px; margin-bottom:12px; border-radius:12px;
+           background:var(--accent); color:var(--accent-text); text-decoration:none;
+           font-weight:600; transition:transform .15s; }
+  a.link:hover, a.link:focus-visible { transform:scale(1.03); }
+  footer { margin-top:32px; font-size:.8rem; opacity:.6; }
+</style>
+</head>
+<body>
+<main>
+  <div class="avatar" aria-hidden="true">🍫</div>
+  <h1>Me da un brauni</h1>
+  <p>Brownies caseros · Pide el tuyo</p>
+
+  <!-- Cambia los href por tus enlaces reales -->
+  <a class="link" href="https://wa.me/520000000000?text=Hola,%20quiero%20un%20brauni" target="_blank" rel="noopener">Haz tu pedido por WhatsApp</a>
+  <a class="link" href="https://instagram.com/medaunbrauni" target="_blank" rel="noopener">Instagram</a>
+  <a class="link" href="https://tiktok.com/@medaunbrauni" target="_blank" rel="noopener">TikTok</a>
+  <a class="link" href="https://facebook.com/medaunbrauni" target="_blank" rel="noopener">Facebook</a>
+
+  <footer>© <script>document.write(new Date().getFullYear())</script> medaunbrauni.com</footer>
+</main>
+</body>
+</html>
