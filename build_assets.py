@@ -107,3 +107,9 @@ fav.alpha_composite(mark, ((N * 4 - mark.width) // 2, (N * 4 - mark.height) // 2
 fav = fav.resize((N, N), Image.Resampling.LANCZOS)
 fav.save("favicon.png", optimize=True)
 fav.save("favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
+
+# Foto de perfil (arriba del link de Instagram): reemplazar el archivo al cambiar de foto
+av = Image.open(os.path.join(SRC, "Autorretrato 2026.png")).convert("RGB")
+side = min(av.size)
+av = av.crop(((av.width - side) // 2, (av.height - side) // 2, (av.width + side) // 2, (av.height + side) // 2))
+av.resize((320, 320), Image.Resampling.LANCZOS).save("avatar.webp", "WEBP", quality=85, method=6)
