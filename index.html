@@ -43,20 +43,34 @@
 
   main { position: relative; width: min(420px, 100%); max-height: calc(100vh - 32px - 12px - 3em); overflow-y: auto;
          padding: clamp(24px, 5vh, 40px) 28px; border-radius: 22px; text-align: center;
-         /* Ola radial de opacidad (50% a 85%) que sale de --wx/--wy: el cursor, o el último toque */
+         /* Ola radial de opacidad (50% a 85%, curva seno, 780px por ciclo) que sale de --wx/--wy: el cursor o el
+            último toque. --wp (avance de los anillos) lo mueve el script. */
          --wx: 50%; --wy: 30%;
          background: repeating-radial-gradient(circle at var(--wx) var(--wy),
-           color-mix(in srgb, var(--panel) 50%, transparent) var(--wp),
-           color-mix(in srgb, var(--panel) 85%, transparent) calc(var(--wp) + 130px),
-           color-mix(in srgb, var(--panel) 50%, transparent) calc(var(--wp) + 260px));
+           color-mix(in srgb, var(--panel) 50.0%, transparent) var(--wp),
+           color-mix(in srgb, var(--panel) 52.3%, transparent) calc(var(--wp) + 65px),
+           color-mix(in srgb, var(--panel) 58.8%, transparent) calc(var(--wp) + 130px),
+           color-mix(in srgb, var(--panel) 67.5%, transparent) calc(var(--wp) + 195px),
+           color-mix(in srgb, var(--panel) 76.2%, transparent) calc(var(--wp) + 260px),
+           color-mix(in srgb, var(--panel) 82.7%, transparent) calc(var(--wp) + 325px),
+           color-mix(in srgb, var(--panel) 85.0%, transparent) calc(var(--wp) + 390px),
+           color-mix(in srgb, var(--panel) 82.7%, transparent) calc(var(--wp) + 455px),
+           color-mix(in srgb, var(--panel) 76.2%, transparent) calc(var(--wp) + 520px),
+           color-mix(in srgb, var(--panel) 67.5%, transparent) calc(var(--wp) + 585px),
+           color-mix(in srgb, var(--panel) 58.8%, transparent) calc(var(--wp) + 650px),
+           color-mix(in srgb, var(--panel) 52.3%, transparent) calc(var(--wp) + 715px),
+           color-mix(in srgb, var(--panel) 50.0%, transparent) calc(var(--wp) + 780px));
          transition: --wx .8s ease-out, --wy .8s ease-out;
-         animation: wave 7s linear infinite;
          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
          box-shadow: 0 10px 40px rgb(0 0 0 / .35);
-         /* Halo del color del panel detrás del texto: el contraste no depende de la ola */
-         text-shadow: 0 0 2px var(--panel), 0 0 6px var(--panel), 0 0 12px var(--panel); }
-  @keyframes wave { to { --wp: 260px; } }  /* una longitud de onda: los anillos avanzan hacia afuera */
-  main h1, .ico { filter: drop-shadow(0 0 2px var(--panel)) drop-shadow(0 0 8px var(--panel)); }
+         text-shadow: 0 0 2px var(--panel); }
+  main h1 { filter: drop-shadow(0 0 2px var(--panel)); }
+  /* Nube difuminada del color del panel detrás de cada texto: la ola baja hasta 50%, pero junto a las
+     letras el fondo queda denso y el contraste no depende de dónde caiga el anillo */
+  main h1, main h2, .big, .ep { position: relative; isolation: isolate; }
+  main h1::before, main h2::before, .big::before, .ep::before {
+    content: ""; position: absolute; inset: -2px -14px; z-index: -1; border-radius: 50%;
+    background: var(--panel); opacity: .9; filter: blur(14px); }
 
   .logo { display: block; width: 88%; aspect-ratio: 1000 / 288; margin: 0 auto clamp(20px, 5vh, 40px);
           background: var(--accent);
@@ -95,7 +109,7 @@
            font: 11px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
            text-shadow: 0 1px 2px rgb(0 0 0 / .9), 0 0 8px rgb(0 0 0 / .6); }
 
-  @media (prefers-reduced-motion: reduce) { .bg div { animation: none; transform: scale(1.05); } .big, .ep, main { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .bg div { animation: none; transform: scale(1.05); } .big, .ep { animation: none; } }
 </style>
 </head>
 <body>
@@ -151,8 +165,24 @@ Las Fantásticas Aventuras de Transformín © 2019 Ricardo Jiménez Rodríguez y
   };
   let pointer = 'mouse';
   addEventListener('pointerdown', e => (pointer = e.pointerType));
-  addEventListener('pointermove', e => { if (e.pointerType === 'mouse') waveAt(e.clientX, e.clientY); });
-  addEventListener('click', e => { if (pointer !== 'mouse') waveAt(e.clientX, e.clientY); });
+  // Velocidad: lenta en reposo; moverse o tocar la acelera y luego vuelve a bajar sola
+  const WAVE = 780, CALM = 40, MAX_BOOST = 900;  // px del ciclo, px/s en reposo, px/s extra máximo
+  let phase = 0, boost = 0, last = performance.now();
+  const kick = v => (boost = Math.min(MAX_BOOST, boost + v));
+  addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse') return;
+    waveAt(e.clientX, e.clientY);
+    kick(Math.hypot(e.movementX, e.movementY) * 6);
+  });
+  addEventListener('click', e => { if (pointer !== 'mouse') waveAt(e.clientX, e.clientY); kick(600); });
+  function flow(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    boost *= Math.exp(-dt * 1.8);  // se desacelera en ~2 s
+    phase = (phase + (CALM + boost) * dt) % WAVE;
+    panel.style.setProperty('--wp', `${phase.toFixed(1)}px`);
+    requestAnimationFrame(flow);
+  }
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(flow);
 
   // Clips en bucle: [id de YouTube, segundo inicial, segundo final]
   const CLIPS = [
