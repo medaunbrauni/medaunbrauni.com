@@ -41,7 +41,7 @@
     to   { transform: scale(1.15) translate(-1.5%, -1%); }
   }
 
-  main { position: relative; width: min(420px, 100%); max-height: calc(100vh - 32px - 12px - 3em); overflow-y: auto;
+  main { position: relative; width: min(420px, 100%); max-height: calc(100vh - 32px - 12px - 3em); overflow-y: auto; overflow-x: hidden;
          padding: clamp(24px, 5vh, 40px) 28px; border-radius: 22px; text-align: center;
          /* Ola radial de opacidad (50% a 85%, curva seno, 780px por ciclo) que sale de --wx/--wy: el cursor o el
             último toque. --wp (avance de los anillos) lo mueve el script. */
