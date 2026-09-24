@@ -20,7 +20,8 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
   body { background: #1a1410; font-family: Medaunbrauni, system-ui, sans-serif; color: var(--accent);
-         overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 16px; }
+         overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+         gap: 12px; padding: 16px; }
 
   /* Fondo: dos capas que se alternan con fundido; escala siempre > 1 para no mostrar bordes */
   .bg { position: fixed; inset: 0; overflow: hidden; }
@@ -33,7 +34,7 @@
     to   { transform: scale(1.15) translate(-1.5%, -1%); }
   }
 
-  main { position: relative; width: min(420px, 100%); max-height: calc(100vh - 32px); overflow-y: auto;
+  main { position: relative; width: min(420px, 100%); max-height: calc(100vh - 32px - 12px - 3em); overflow-y: auto;
          padding: clamp(24px, 5vh, 40px) 28px; border-radius: 22px; text-align: center;
          background: color-mix(in srgb, var(--panel) 85%, transparent);
          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -66,11 +67,16 @@
   .i-acute::after { content: ""; position: absolute; left: 50%; top: -.22em; width: .09em; height: .24em;
                     background: currentColor; border-radius: .05em; transform: translateX(-10%) rotate(40deg); }
 
-  .clip { position: relative; aspect-ratio: 16 / 9; margin: 0 0 clamp(12px, 3vh, 20px); border-radius: 12px;
+  .clip { display: block; padding: 0; position: relative; aspect-ratio: 16 / 9; margin: 0 0 clamp(12px, 3vh, 20px); border-radius: 12px;
           overflow: hidden; background: color-mix(in srgb, var(--accent) 25%, transparent); }
   .clip iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none;
                  opacity: 0; transition: opacity .8s ease-in-out; }
   .clip iframe.on { opacity: 1; }
+
+  /* Fuente del sistema: la tipografía de la marca no trae é/í */
+  footer { position: relative; max-width: 420px; text-align: center; color: #fff;
+           font: 12px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+           text-shadow: 0 1px 2px rgb(0 0 0 / .9), 0 0 8px rgb(0 0 0 / .6); }
 
   @media (prefers-reduced-motion: reduce) { .bg div { animation: none; transform: scale(1.05); } .big, .ep { animation: none; } }
 </style>
@@ -86,11 +92,14 @@
 
   <hr>
   <h2 aria-label="Las Fantásticas Aventuras de Transformín">Las Fantásticas<br>Aventuras de<br>Transform<span class="i-acute">I</span>n</h2>
-  <div class="clip"></div>
+  <a class="clip" target="_blank" rel="noopener" aria-label="Ver este episodio en YouTube"></a>
   <a class="ep" href="https://www.youtube.com/watch?v=zVXJ1l-Y-ME&t=7s" target="_blank" rel="noopener">Piloto</a>
   <a class="ep" href="https://www.youtube.com/watch?v=VYAn6CllAWI&t=36s" target="_blank" rel="noopener">E 01</a>
   <a class="ep" href="https://www.youtube.com/watch?v=c6K5AjTGBLc&t=21s" target="_blank" rel="noopener">E 02</a>
 </main>
+
+<footer>© 2026 Ricardo Jiménez Rodríguez. Todos los derechos reservados.<br>
+Medaunbrauni y Las Fantásticas Aventuras de Transformín son obras de Ricardo Jiménez Rodríguez.</footer>
 
 <script src="bg/list.js"></script>
 <script>
@@ -175,6 +184,7 @@
     const s = slots[act], [, begin, end] = at(c);
     if (s.p.getPlayerState?.() !== YT.PlayerState.PLAYING) return;
     const t = s.p.getCurrentTime();
+    box.href = `https://www.youtube.com/watch?v=${at(c)[0]}&t=${Math.floor(Math.max(t, begin))}s`;  // clic = este video en este segundo
     if (!s.shown && t >= begin) reveal(act);  // solo aplica al primer clip
     if (!warm && t >= end - FADE_AT - LEAD) {  // arranca el siguiente, todavía oculto
       warm = true;
