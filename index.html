@@ -3,45 +3,100 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Me da un brauni</title>
-<meta name="description" content="Brownies caseros. Pide el tuyo.">
-<meta property="og:title" content="Me da un brauni">
-<meta property="og:description" content="Brownies caseros. Pide el tuyo.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍫</text></svg>">
+<title>Medaunbrauni</title>
+<meta name="description" content="Medaunbrauni · Las Fantásticas Aventuras de Transformín">
+<meta property="og:title" content="Medaunbrauni">
+<meta property="og:description" content="Las Fantásticas Aventuras de Transformín">
+<meta property="og:image" content="https://medaunbrauni.com/bg/anverso5.webp">
+<link rel="icon" href="logo.png">
+<link rel="preload" href="bg/anverso1.webp" as="image">
 <style>
-  :root { --bg:#f6efe7; --card:#fff; --text:#3b2418; --accent:#6b3e26; --accent-text:#fff; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#1e140f; --card:#2b1d16; --text:#f3e6da; --accent:#c98a5a; --accent-text:#1e140f; }
+  @font-face { font-family: Medaunbrauni; src: url(fonts/medaunbrauni.otf); font-display: swap; }
+  @font-face { font-family: Medaunbrauni; src: url(fonts/medaunbrauni-bold.otf); font-weight: bold; font-display: swap; }
+
+  :root { --panel: #dca82e; --accent: #312a10; --fade: 2.5s; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #1a1410; font-family: Medaunbrauni, system-ui, sans-serif; color: var(--accent);
+         overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 16px; }
+
+  /* Fondo: dos capas que se alternan con fundido; escala siempre > 1 para no mostrar bordes */
+  .bg { position: fixed; inset: 0; overflow: hidden; }
+  .bg div { position: absolute; inset: 0; background: center / cover no-repeat;
+            opacity: 0; transition: opacity var(--fade) ease-in-out;
+            animation: kenburns 40s ease-in-out infinite alternate; will-change: transform; }
+  .bg div.on { opacity: 1; }
+  @keyframes kenburns {
+    from { transform: scale(1.05) translate(0, 0); }
+    to   { transform: scale(1.15) translate(-1.5%, -1%); }
   }
-  * { box-sizing:border-box; }
-  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text);
-         font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-         display:flex; justify-content:center; padding:48px 16px; }
-  main { width:100%; max-width:480px; text-align:center; }
-  .avatar { width:96px; height:96px; border-radius:50%; background:var(--accent);
-            display:grid; place-items:center; font-size:48px; margin:0 auto 16px; }
-  h1 { margin:0 0 4px; font-size:1.5rem; }
-  p { margin:0 0 32px; opacity:.8; }
-  a.link { display:block; padding:16px; margin-bottom:12px; border-radius:12px;
-           background:var(--accent); color:var(--accent-text); text-decoration:none;
-           font-weight:600; transition:transform .15s; }
-  a.link:hover, a.link:focus-visible { transform:scale(1.03); }
-  footer { margin-top:32px; font-size:.8rem; opacity:.6; }
+
+  main { position: relative; width: min(420px, 100%); max-height: calc(100vh - 32px); overflow-y: auto;
+         padding: clamp(24px, 5vh, 40px) 28px; border-radius: 22px; text-align: center;
+         background: color-mix(in srgb, var(--panel) 72%, transparent);
+         backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+         box-shadow: 0 10px 40px rgb(0 0 0 / .35);
+         transition: background-color var(--fade), color var(--fade); }
+
+  .logo { display: block; width: 88%; aspect-ratio: 1000 / 288; margin: 0 auto clamp(20px, 5vh, 40px);
+          background: var(--accent); transition: background-color var(--fade);
+          -webkit-mask: url(logo.png) center / contain no-repeat; mask: url(logo.png) center / contain no-repeat; }
+
+  a { display: block; color: inherit; text-decoration: none; text-transform: uppercase; letter-spacing: .06em;
+      padding: 8px; border-radius: 10px; transition: transform .2s, background-color .2s; }
+  a:hover, a:focus-visible { transform: scale(1.06); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  a:focus-visible { outline: 2px solid currentColor; }
+  .big { font-size: clamp(1.3rem, 4.5vw, 1.75rem); font-weight: bold; margin: 6px 0; }
+  hr { color: inherit; border: 0; border-top: 2px dashed currentColor; width: 70%; margin: clamp(16px, 4vh, 28px) auto 12px; opacity: .8; }
+  h2 { font-size: clamp(1.05rem, 3.6vw, 1.35rem); font-weight: normal; text-transform: uppercase;
+       letter-spacing: .06em; margin: 0 0 clamp(12px, 3vh, 24px); line-height: 1.3; }
+  .ep { font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: bold; padding: 4px; }
+
+  /* La fuente no trae acento en la I: se dibuja aquí */
+  .i-acute { position: relative; }
+  .i-acute::after { content: ""; position: absolute; left: 50%; top: -.22em; width: .09em; height: .24em;
+                    background: currentColor; border-radius: .05em; transform: translateX(-10%) rotate(40deg); }
+
+  @media (prefers-reduced-motion: reduce) { .bg div { animation: none; transform: scale(1.05); } }
 </style>
 </head>
 <body>
+<div class="bg" aria-hidden="true"><div></div><div></div></div>
+
 <main>
-  <div class="avatar" aria-hidden="true">🍫</div>
-  <h1>Me da un brauni</h1>
-  <p>Brownies caseros · Pide el tuyo</p>
+  <h1 style="margin:0"><span class="logo" role="img" aria-label="Medaunbrauni"></span></h1>
 
-  <!-- Cambia los href por tus enlaces reales -->
-  <a class="link" href="https://wa.me/520000000000?text=Hola,%20quiero%20un%20brauni" target="_blank" rel="noopener">Haz tu pedido por WhatsApp</a>
-  <a class="link" href="https://instagram.com/medaunbrauni" target="_blank" rel="noopener">Instagram</a>
-  <a class="link" href="https://tiktok.com/@medaunbrauni" target="_blank" rel="noopener">TikTok</a>
-  <a class="link" href="https://facebook.com/medaunbrauni" target="_blank" rel="noopener">Facebook</a>
+  <a class="big" href="https://www.instagram.com/medaunbrauni/" target="_blank" rel="noopener">Instagram</a>
+  <a class="big" href="https://www.tiktok.com/@medaunbrauni" target="_blank" rel="noopener">TikTok</a>
 
-  <footer>© <script>document.write(new Date().getFullYear())</script> medaunbrauni.com</footer>
+  <hr>
+  <h2 aria-label="Las Fantásticas Aventuras de Transformín">Las Fantásticas<br>Aventuras de<br>Transform<span class="i-acute">I</span>n</h2>
+  <a class="ep" href="https://www.youtube.com/watch?v=zVXJ1l-Y-ME&t=7s" target="_blank" rel="noopener">Piloto</a>
+  <a class="ep" href="https://www.youtube.com/watch?v=VYAn6CllAWI&t=36s" target="_blank" rel="noopener">E 01</a>
+  <a class="ep" href="https://www.youtube.com/watch?v=c6K5AjTGBLc&t=21s" target="_blank" rel="noopener">E 02</a>
 </main>
+
+<script src="bg/list.js"></script>
+<script>
+  const layers = document.querySelectorAll('.bg div');
+  const root = document.documentElement.style;
+  let i = Math.floor(Math.random() * BGS.length), front = 0;
+
+  function show(n) {
+    const b = BGS[n], img = new Image();
+    img.onload = () => {
+      front ^= 1;
+      layers[front].style.backgroundImage = `url(${b.src})`;
+      layers[front].classList.add('on');
+      layers[front ^ 1].classList.remove('on');
+      root.setProperty('--panel', b.panel);
+      root.setProperty('--accent', b.accent);
+    };
+    img.src = b.src;
+  }
+
+  show(i);
+  setInterval(() => show(i = (i + 1) % BGS.length), 60000);
+</script>
 </body>
 </html>
