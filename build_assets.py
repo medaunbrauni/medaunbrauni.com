@@ -59,3 +59,17 @@ logo.save("logo.png", optimize=True)
 
 shutil.copy(os.path.join(SRC, "MEDAUNBRAUNI (1).otf"), "fonts/medaunbrauni.otf")
 shutil.copy(os.path.join(SRC, "MEDAUNBRAUNI-Bold (1).otf"), "fonts/medaunbrauni-bold.otf")
+
+# Favicon: logo compacto dentro de un círculo mostaza
+MOSTAZA = (220, 168, 46, 255)  # el tono del panel en Anverso1
+N = 512
+fav = Image.new("RGBA", (N * 4, N * 4))  # se dibuja a 4x y se reduce para bordes suaves
+from PIL import ImageDraw
+ImageDraw.Draw(fav).ellipse((0, 0, N * 4 - 1, N * 4 - 1), fill=MOSTAZA)
+mark = Image.open(os.path.join(SRC, "Logo_Medaunbrauni_COMPACTO.png")).convert("RGBA")
+mark = mark.crop(mark.getbbox())
+mark.thumbnail((int(N * 4 * 0.64),) * 2, Image.Resampling.LANCZOS)  # 64% cabe dentro del círculo
+fav.alpha_composite(mark, ((N * 4 - mark.width) // 2, (N * 4 - mark.height) // 2))
+fav = fav.resize((N, N), Image.Resampling.LANCZOS)
+fav.save("favicon.png", optimize=True)
+fav.save("favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
