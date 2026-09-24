@@ -158,7 +158,7 @@
     slots[k].p.loadVideoById(clip(n));
   }
 
-  function show(k) {
+  function reveal(k) {
     slots[k].shown = true;  slots[k].p.getIframe().classList.add('on');
     slots[k ^ 1].shown = false; slots[k ^ 1].p.getIframe().classList.remove('on');
   }
@@ -175,7 +175,7 @@
     const s = slots[act], [, begin, end] = at(c);
     if (s.p.getPlayerState?.() !== YT.PlayerState.PLAYING) return;
     const t = s.p.getCurrentTime();
-    if (!s.shown && t >= begin) show(act);  // solo aplica al primer clip
+    if (!s.shown && t >= begin) reveal(act);  // solo aplica al primer clip
     if (!warm && t >= end - FADE_AT - LEAD) {  // arranca el siguiente, todavía oculto
       warm = true;
       slots[act ^ 1].priming = false;
@@ -184,7 +184,7 @@
     if (t >= end - FADE_AT) {
       const prev = act;
       act ^= 1; c++; warm = false;
-      show(act);
+      reveal(act);
       setTimeout(() => prime(prev, c + 1), 1500);  // después del fundido, el que salió prepara el siguiente
     }
   }
