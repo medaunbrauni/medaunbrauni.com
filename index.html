@@ -66,7 +66,9 @@
 
   .clip { position: relative; aspect-ratio: 16 / 9; margin: 0 0 clamp(12px, 3vh, 20px); border-radius: 12px;
           overflow: hidden; background: color-mix(in srgb, var(--accent) 25%, transparent); }
-  .clip iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+  .clip iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none;
+                 opacity: 0; transition: opacity .8s ease-in-out; }
+  .clip iframe.on { opacity: 1; }
 
   @media (prefers-reduced-motion: reduce) { .bg div { animation: none; transform: scale(1.05); } .big, .ep { animation: none; } }
 </style>
@@ -82,7 +84,7 @@
 
   <hr>
   <h2 aria-label="Las Fantásticas Aventuras de Transformín">Las Fantásticas<br>Aventuras de<br>Transform<span class="i-acute">I</span>n</h2>
-  <div class="clip"><div id="clip"></div></div>
+  <div class="clip"></div>
   <a class="ep" href="https://www.youtube.com/watch?v=zVXJ1l-Y-ME&t=7s" target="_blank" rel="noopener">Piloto</a>
   <a class="ep" href="https://www.youtube.com/watch?v=VYAn6CllAWI&t=36s" target="_blank" rel="noopener">E 01</a>
   <a class="ep" href="https://www.youtube.com/watch?v=c6K5AjTGBLc&t=21s" target="_blank" rel="noopener">E 02</a>
@@ -116,21 +118,59 @@
     ['VYAn6CllAWI', 36, 51],
     ['c6K5AjTGBLc', 21, 36],
   ];
-  let c = 0, player;
-  const load = () => { const [videoId, startSeconds, endSeconds] = CLIPS[c]; player.loadVideoById({ videoId, startSeconds, endSeconds }); };
+  // Dos reproductores encimados: uno se ve, el otro precarga el siguiente clip pausado en su primer cuadro.
+  // Un poco antes de que termine el clip visible, arranca el oculto y se cruzan con un fundido.
+  const FADE_AT = 0.8;  // segundos antes del final en que empieza el cruce
+  const box = document.querySelector('.clip');
+  const slots = [];
+  let c = 0, act = 0, ready = 0;
+
+  const clip = n => { const [videoId, startSeconds, endSeconds] = CLIPS[n % CLIPS.length]; return { videoId, startSeconds, endSeconds }; };
+
   function onYouTubeIframeAPIReady() {
-    player = new YT.Player('clip', {
-      host: 'https://www.youtube-nocookie.com',
-      playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1, rel: 0, disablekb: 1, iv_load_policy: 3, cc_load_policy: 0 },
-      events: {
-        onReady: e => { e.target.mute(); load(); },
-        onStateChange: e => {
-          // cc_load_policy: 0 no basta si el usuario tiene subtítulos activados en su cuenta: se descarga el módulo
-          if (e.data === YT.PlayerState.PLAYING) { e.target.unloadModule('captions'); e.target.unloadModule('cc'); }
-          if (e.data === YT.PlayerState.ENDED) { c = (c + 1) % CLIPS.length; load(); }
+    for (const k of [0, 1]) {
+      const el = box.appendChild(document.createElement('div'));
+      slots[k] = { priming: true, p: new YT.Player(el, {
+        host: 'https://www.youtube-nocookie.com',
+        playerVars: { mute: 1, controls: 0, playsinline: 1, rel: 0, disablekb: 1, iv_load_policy: 3, cc_load_policy: 0 },
+        events: {
+          onReady: e => { e.target.mute(); if (++ready === 2) start(); },
+          onStateChange: e => onState(k, e.data),
         },
-      },
-    });
+      }) };
+    }
+  }
+
+  function start() {
+    slots[act].priming = false;
+    slots[act].p.loadVideoById(clip(c));
+    prime(act ^ 1, c + 1);
+    setInterval(tick, 200);
+  }
+
+  function prime(k, n) {
+    slots[k].priming = true;
+    slots[k].p.loadVideoById(clip(n));
+  }
+
+  function onState(k, st) {
+    const { p, priming } = slots[k];
+    if (st !== YT.PlayerState.PLAYING) return;
+    // cc_load_policy: 0 no basta si el usuario tiene subtítulos activados en su cuenta: se descarga el módulo
+    p.unloadModule('captions'); p.unloadModule('cc');
+    if (priming) { p.pauseVideo(); p.seekTo(CLIPS[(c + 1) % CLIPS.length][1], true); return; }
+    p.getIframe().classList.add('on');
+    slots[k ^ 1].p.getIframe().classList.remove('on');
+  }
+
+  function tick() {
+    const cur = slots[act].p, end = CLIPS[c % CLIPS.length][2];
+    if (cur.getPlayerState?.() !== YT.PlayerState.PLAYING || cur.getCurrentTime() < end - FADE_AT) return;
+    const prev = act;
+    act ^= 1; c++;
+    slots[act].priming = false;
+    slots[act].p.playVideo();
+    setTimeout(() => prime(prev, c + 1), 1500);  // después del fundido, el que salió precarga el siguiente
   }
 </script>
 <script src="https://www.youtube.com/iframe_api" async></script>
