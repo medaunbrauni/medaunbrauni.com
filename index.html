@@ -121,10 +121,14 @@
   function onYouTubeIframeAPIReady() {
     player = new YT.Player('clip', {
       host: 'https://www.youtube-nocookie.com',
-      playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1, rel: 0, disablekb: 1, iv_load_policy: 3 },
+      playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1, rel: 0, disablekb: 1, iv_load_policy: 3, cc_load_policy: 0 },
       events: {
         onReady: e => { e.target.mute(); load(); },
-        onStateChange: e => { if (e.data === YT.PlayerState.ENDED) { c = (c + 1) % CLIPS.length; load(); } },
+        onStateChange: e => {
+          // cc_load_policy: 0 no basta si el usuario tiene subtítulos activados en su cuenta: se descarga el módulo
+          if (e.data === YT.PlayerState.PLAYING) { e.target.unloadModule('captions'); e.target.unloadModule('cc'); }
+          if (e.data === YT.PlayerState.ENDED) { c = (c + 1) % CLIPS.length; load(); }
+        },
       },
     });
   }
