@@ -43,19 +43,17 @@
          /* Opacidad en ola entre 50% y 85% que se desplaza lentamente */
          background: linear-gradient(120deg,
            color-mix(in srgb, var(--panel) 50%, transparent),
-           color-mix(in srgb, var(--panel) 85%, transparent) 20%,
-           color-mix(in srgb, var(--panel) 58%, transparent) 42%,
-           color-mix(in srgb, var(--panel) 82%, transparent) 64%,
-           color-mix(in srgb, var(--panel) 52%, transparent) 84%,
-           color-mix(in srgb, var(--panel) 85%, transparent)) 0 0 / 300% 300%;
+           color-mix(in srgb, var(--panel) 85%, transparent) 25%,
+           color-mix(in srgb, var(--panel) 50%, transparent) 50%,
+           color-mix(in srgb, var(--panel) 85%, transparent) 75%,
+           color-mix(in srgb, var(--panel) 50%, transparent)) 0 0 / 250% 250%;
          animation: wave 24s ease-in-out infinite alternate;
          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
          box-shadow: 0 10px 40px rgb(0 0 0 / .35);
          /* Halo del color del panel detrás del texto: el contraste no depende de la ola */
-         text-shadow: 0 0 1px var(--panel), 0 0 3px var(--panel), 0 0 5px var(--panel), 0 0 8px var(--panel),
-                      0 0 12px var(--panel), 0 0 18px var(--panel); }
+         text-shadow: 0 0 2px var(--panel), 0 0 6px var(--panel), 0 0 12px var(--panel); }
   @keyframes wave { to { background-position: 100% 100%; } }
-  main h1, .ico { filter: drop-shadow(0 0 1px var(--panel)) drop-shadow(0 0 4px var(--panel)) drop-shadow(0 0 10px var(--panel)); }
+  main h1, .ico { filter: drop-shadow(0 0 2px var(--panel)) drop-shadow(0 0 8px var(--panel)); }
 
   .logo { display: block; width: 88%; aspect-ratio: 1000 / 288; margin: 0 auto clamp(20px, 5vh, 40px);
           background: var(--accent);
