@@ -19,6 +19,9 @@
   /* Registradas como <color> para que el cambio de paleta se interpole también dentro de los degradados */
   @property --panel { syntax: '<color>'; inherits: true; initial-value: #e1aa23; }
   @property --accent { syntax: '<color>'; inherits: true; initial-value: #403005; }
+  @property --wp { syntax: '<length>'; inherits: false; initial-value: 0px; }
+  @property --wx { syntax: '<length-percentage>'; inherits: false; initial-value: 50%; }
+  @property --wy { syntax: '<length-percentage>'; inherits: false; initial-value: 30%; }
   :root { --panel: #e1aa23; --accent: #403005; --fade: 2.5s;
           transition: --panel var(--fade) ease-in-out, --accent var(--fade) ease-in-out; }
   * { box-sizing: border-box; }
@@ -40,19 +43,19 @@
 
   main { position: relative; width: min(420px, 100%); max-height: calc(100vh - 32px - 12px - 3em); overflow-y: auto;
          padding: clamp(24px, 5vh, 40px) 28px; border-radius: 22px; text-align: center;
-         /* Opacidad en ola entre 50% y 85% que se desplaza lentamente */
-         background: linear-gradient(120deg,
-           color-mix(in srgb, var(--panel) 50%, transparent),
-           color-mix(in srgb, var(--panel) 85%, transparent) 25%,
-           color-mix(in srgb, var(--panel) 50%, transparent) 50%,
-           color-mix(in srgb, var(--panel) 85%, transparent) 75%,
-           color-mix(in srgb, var(--panel) 50%, transparent)) 0 0 / 250% 250%;
-         animation: wave 24s ease-in-out infinite alternate;
+         /* Ola radial de opacidad (50% a 85%) que sale de --wx/--wy: el cursor, o el último toque */
+         --wx: 50%; --wy: 30%;
+         background: repeating-radial-gradient(circle at var(--wx) var(--wy),
+           color-mix(in srgb, var(--panel) 50%, transparent) var(--wp),
+           color-mix(in srgb, var(--panel) 85%, transparent) calc(var(--wp) + 130px),
+           color-mix(in srgb, var(--panel) 50%, transparent) calc(var(--wp) + 260px));
+         transition: --wx .8s ease-out, --wy .8s ease-out;
+         animation: wave 7s linear infinite;
          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
          box-shadow: 0 10px 40px rgb(0 0 0 / .35);
          /* Halo del color del panel detrás del texto: el contraste no depende de la ola */
          text-shadow: 0 0 2px var(--panel), 0 0 6px var(--panel), 0 0 12px var(--panel); }
-  @keyframes wave { to { background-position: 100% 100%; } }
+  @keyframes wave { to { --wp: 260px; } }  /* una longitud de onda: los anillos avanzan hacia afuera */
   main h1, .ico { filter: drop-shadow(0 0 2px var(--panel)) drop-shadow(0 0 8px var(--panel)); }
 
   .logo { display: block; width: 88%; aspect-ratio: 1000 / 288; margin: 0 auto clamp(20px, 5vh, 40px);
@@ -136,6 +139,20 @@ Las Fantásticas Aventuras de Transformín © 2019 Ricardo Jiménez Rodríguez y
 
   show(i);
   setInterval(() => show(i = (i + 1) % BGS.length), 60000);
+
+  // Centro de la ola: sigue al mouse; en pantallas táctiles empieza al azar y se mueve solo al tocar
+  const panel = document.querySelector('main');
+  panel.style.setProperty('--wx', `${Math.round(Math.random() * 100)}%`);
+  panel.style.setProperty('--wy', `${Math.round(Math.random() * 100)}%`);
+  const waveAt = (x, y) => {
+    const r = panel.getBoundingClientRect();
+    panel.style.setProperty('--wx', `${Math.round(x - r.left)}px`);
+    panel.style.setProperty('--wy', `${Math.round(y - r.top)}px`);
+  };
+  let pointer = 'mouse';
+  addEventListener('pointerdown', e => (pointer = e.pointerType));
+  addEventListener('pointermove', e => { if (e.pointerType === 'mouse') waveAt(e.clientX, e.clientY); });
+  addEventListener('click', e => { if (pointer !== 'mouse') waveAt(e.clientX, e.clientY); });
 
   // Clips en bucle: [id de YouTube, segundo inicial, segundo final]
   const CLIPS = [
