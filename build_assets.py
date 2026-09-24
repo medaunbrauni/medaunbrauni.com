@@ -1,6 +1,6 @@
 """Genera bg/*.webp, bg/list.js, logo.png y fonts/ desde la carpeta de recursos.
 Uso: python build_assets.py  (volver a correr al agregar un Anverso nuevo)"""
-import glob, json, os, shutil
+import colorsys, glob, json, os, shutil
 from PIL import Image
 
 SRC = r"G:\Mi unidad\Medaunbrauni\MEDAUNBRAUNI SITIO WEB\Landing Page"
@@ -21,20 +21,54 @@ def contrast(a, b):
     return (la + 0.05) / (lb + 0.05)
 
 
+PANEL_MIX = 0.85   # igual que color-mix(... var(--panel) 85%, transparent) en index.html
+MIN_CONTRAST = 4.5  # WCAG AA texto normal
+MIN_ACCENT_LUM = 0.03  # piso para que el acento no termine en casi negro
+
+
+def hls(c):
+    return colorsys.rgb_to_hls(*(v / 255 for v in c))
+
+
+def rgb(h, l, s):
+    return tuple(round(v * 255) for v in colorsys.hls_to_rgb(h, l, s))
+
+
+def mix(a, b, t):
+    return tuple(round(x * t + y * (1 - t)) for x, y in zip(a, b))
+
+
 def palette(im):
-    """Panel = color claro dominante, acento = el color de la paleta con más contraste
-    y algo de saturación (legibilidad AA >= 4.5)."""
-    q = im.resize((200, 114)).quantize(10, method=Image.Quantize.MEDIANCUT)
+    """Panel = color claro dominante. Acento = color de la paleta ajustado en claridad (mismo tono)
+    hasta cumplir MIN_CONTRAST contra el peor caso: el panel al PANEL_MIX sobre el pixel más
+    oscuro de la imagen. Entre los candidatos gana el que conserva más color."""
+    small = im.resize((200, 114))
+    q = small.quantize(16, method=Image.Quantize.MEDIANCUT)
     pal = q.getpalette()
-    counts = sorted(q.getcolors(), reverse=True)
-    colors = [(n, tuple(pal[i * 3:i * 3 + 3])) for n, i in counts]
+    total = small.width * small.height
+    colors = [(n, tuple(pal[i * 3:i * 3 + 3])) for n, i in sorted(q.getcolors(), reverse=True)]
+    darkest = sorted(small.getdata(), key=lum)[total // 50]  # percentil 2, ignora píxeles sueltos
+
     light = [c for n, c in colors if lum(c) > 0.25] or [max((c for _, c in colors), key=lum)]
     panel = light[0]
-    sat = lambda c: max(c) - min(c)
-    ok = [c for _, c in colors if contrast(c, panel) >= 4.5]
-    accent = max(ok, key=sat) if ok else min((c for _, c in colors), key=lum)
-    if contrast(accent, panel) < 4.5:  # ponytail: fallback a tono oscurecido del acento
-        accent = tuple(int(v * 0.35) for v in accent)
+    # Si el panel es muy oscuro para el peor caso, se aclara conservando su tono
+    h, l, s = hls(panel)
+    need = MIN_CONTRAST * (MIN_ACCENT_LUM + 0.05) - 0.05
+    while lum(mix(panel, darkest, PANEL_MIX)) < need and l < 0.95:
+        l += 0.01
+        panel = rgb(h, l, s)
+    worst = mix(panel, darkest, PANEL_MIX)
+
+    # Acento: cada color con presencia real (>= 1% de la imagen) se ajusta en claridad hasta cumplir el contraste; gana el que conserva más color (croma) después del ajuste.
+    def fit(c):
+        h, _, s = hls(c)
+        l, s = 0.6, max(s, 0.6)  # desde tono medio hacia abajo: el más claro que cumpla
+        while contrast(rgb(h, l, s), worst) < MIN_CONTRAST and l > 0:
+            l -= 0.005
+        return rgb(h, max(l, 0), s)
+    chroma = lambda c: max(c) - min(c)
+    accent = max((fit(c) for n, c in colors if n >= total * 0.01), key=chroma)
+    assert contrast(accent, worst) >= MIN_CONTRAST and contrast(accent, panel) >= MIN_CONTRAST, (panel, accent)
     return panel, accent
 
 
@@ -47,7 +81,7 @@ for f in sorted(glob.glob(os.path.join(SRC, "Anverso*.png"))):
     im.thumbnail((2560, 2560), Image.Resampling.LANCZOS)
     im.save(os.path.join("bg", name), "WEBP", quality=78, method=6)
     items.append({"src": "bg/" + name, "panel": hexc(panel), "accent": hexc(accent)})
-    print(name, hexc(panel), hexc(accent), "contraste %.1f" % contrast(panel, accent))
+    print(name, "panel", hexc(panel), "acento", hexc(accent), "contraste %.1f" % contrast(panel, accent))
 
 with open("bg/list.js", "w") as fh:
     fh.write("const BGS = " + json.dumps(items, indent=1) + ";\n")

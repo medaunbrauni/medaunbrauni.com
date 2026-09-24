@@ -1,22 +1,22 @@
 const BGS = [
  {
   "src": "bg/anverso1.webp",
-  "panel": "#dca82e",
-  "accent": "#312a10"
+  "panel": "#e1aa23",
+  "accent": "#403005"
  },
  {
   "src": "bg/anverso2.webp",
-  "panel": "#ce7d65",
-  "accent": "#361d2b"
+  "panel": "#dca190",
+  "accent": "#4b1862"
  },
  {
   "src": "bg/anverso4.webp",
-  "panel": "#ba8b84",
-  "accent": "#231112"
+  "panel": "#c7a39d",
+  "accent": "#620f06"
  },
  {
   "src": "bg/anverso5.webp",
-  "panel": "#8c9854",
-  "accent": "#302314"
+  "panel": "#a9b972",
+  "accent": "#5a1c09"
  }
 ];
