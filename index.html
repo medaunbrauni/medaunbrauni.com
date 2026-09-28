@@ -222,7 +222,8 @@ Las Fantásticas Aventuras de Transformín © 2019 Ricardo Jiménez Rodríguez y
 
   function start() {
     slots[act].priming = false;
-    slots[act].p.loadVideoById(clip(c));
+    // El primer clip arranca directo en su inicio (sin los LEAD s ocultos) y se muestra en cuanto reproduce
+    slots[act].p.loadVideoById({ ...clip(c), startSeconds: at(c)[1] });
     prime(act ^ 1, c + 1);
     setInterval(tick, 200);
   }
