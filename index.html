@@ -156,7 +156,14 @@ Las Fantásticas Aventuras de Transformín © 2019 Ricardo Jiménez Rodríguez y
   }
 
   show(i);
-  setInterval(() => show(i = (i + 1) % BGS.length), 60000);
+  const next = () => show(i = (i + 1) % BGS.length);
+  let cycle = setInterval(next, 60000);
+  // Clic fuera del panel: siguiente fondo (y reinicia la cuenta de 60 s para que no cambie enseguida)
+  addEventListener('click', e => {
+    if (e.target.closest('main')) return;
+    next();
+    clearInterval(cycle); cycle = setInterval(next, 60000);
+  });
 
   // Centro de la ola: sigue al mouse; en pantallas táctiles empieza al azar y se mueve solo al tocar
   const panel = document.querySelector('main');
